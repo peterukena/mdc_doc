@@ -3,6 +3,14 @@ mdc_doc
 
 Magento Developer Certification Documentary
 
+## HELP!
+---
+
+I need some corrections and editings on the internationalization part. I just not remember some things. Would anyone be so kind to branch, edit and psuh back more information for me? :)
+
+
+
+
 ### Why?
 ---
 
