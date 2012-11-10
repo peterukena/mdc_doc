@@ -155,3 +155,23 @@ This one executes the `scheduledGenerateSitemaps()` method of the `Sitemap/Obser
 
 ## Internationalization
 ---
+
+### Describe how to plan for internationalization of a Magento site
+
+If we need to implement our shop with different languages, it is useful to setup different StoreViews for each language, we want to use. That way, we can easily seperate different settings and localizations for our different shops. Magento as well can easier get the correct files for each shop.
+
+### Describe the use of Magento translate classes and translate files
+
+Magento brings a whole factory for translating texts into different languages as well as different locations for translation files.
+
+- app/locale/[locale]/ for module translation
+- app/design/[package]/[theme]/translate.csv for theme translation
+- `core_translate` table in the database for basic translation and fallback reasins
+
+By using the `__()` method in template files, Magento tries to lookup the given string in its translate repositories. First it will look into the module translation to find the string, take the next field in that line (its a .csv file, which makes this work!) and return it. If the desired string is not there, Magento goes into the themes locale folder and searches the string in the translate.csv file there. If its also not there, it will head over into the database to fetch a string there which fits.
+
+We can use the themes translate.csv to manually override any modules translation, by putting the source string into the translate.csv and adding a translation.
+
+### Describe the advantages and disadvantages of using subdomains and subdirectories in internationalization
+
+I do not remember. Please help!
