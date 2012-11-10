@@ -168,7 +168,7 @@ Magento brings a whole factory for translating texts into different languages as
 - app/design/[package]/[theme]/translate.csv for theme translation
 - `core_translate` table in the database for basic translation and fallback reasons
 
-By using the `__()` method in template files, Magento tries to lookup the given string in its translate repositories. First it will look into the module translation to find the string, take the next field in that line (its a .csv file, which makes this work!) and return it. If the desired string is not there, Magento goes into the themes locale folder and searches the string in the translate.csv file there. If its also not there, it will head over into the database to fetch a string there which fits.
+By using the `__()` method in template files, Magento tries to lookup the given string in its translate repositories. First it will look into the module translation to find the string, take the next field in that line (its a .csv file, which makes this work!) and return it. If the desired string is not there, Magento looks into the themes locale folder and searches the string in the translate.csv file there. If its not there either, it will head over into the database to fetch a string there which fits.
 
 We can use the themes translate.csv to manually override any modules translation, by putting the source string into the translate.csv and adding a translation.
 
