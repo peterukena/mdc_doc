@@ -90,3 +90,22 @@ We also could try to modify the improper module in a way, that we can see the ti
 ### Explain how Magento loads and manipulates configuration information
 
 If magento boots up the first time, it checks the app/etc/config.xml for initial information on version, database connection, installed-flag and localization. After that, it writes the app/etc/local.xml for database account and adminhtml path in frontend. 
+After that it will go to app/etc/modules and read all files there, which end to .xml. Done that, magento will go to all module folders, which are specified in app/etc/modules` .xml-files and load the respective config.xml files.
+At this point Magento knows of all modules from local/community/core it has to load. But to prevent bad modules to do bad things to our crucial information on databases and other sensible data, it loads the local.xml again to override all malicious setups with at least one functioning and correct set of information
+
+### Describe class group configuration and use in factory methods
+
+Magento groups its classes into 2 different factory-groups.
+
+- Models
+- Helpers
+
+With the appropiate `Mage::getModel()` or `Mage::Helper()` we start the factoring process. We pass a string to these functions which looks like `catalog/product`. That means, Magento is going to search its configuration for any `<catalog>` node and sees the class prefix in its `<class>` node. In this case it would be `Mage_Catalog_Model` (if we use `Mage::getModel('catalog/product)`. While having the prefix of our desired class, Magento uses the part after the "/" to find the fitting model .php-file in the "Model" folder of the "Catalog" Extension. So `catalog/product` will get parsed to `Mage_Catalog_Model`/product and this will get convert into `Mage_Catalog_Model_Product` and finally the autoloader puts its famous ".php" at the end and we have our Model class.
+The exact same thing happens, if we use the `Mage::Helper()` method. This time, Magento searches all defined Helpers (from all config.xml files) to get the correct helper class. Though Magento uses the default Helper class `Data.php` we do not have to specify this unless we want a more specified helper.
+
+### Describe the process and configuration of class overrides in Magento
+
+To override any given class in Magento in our own module, we simply define a `<rewrite>` node in our config.xml. If Magento tries to load our previously mentioned `catalog/product`, it will not only search for all `<catalog>` nodes, but especially for any `<rewrite>` nodes, which may be found in any `<catalog>` nodes. These rewrites define the class prefix of a class, that is to be used instead of the default class prefix defined in the original `<catalog>` node.
+**This is the Magento-Way**
+
+There is, though not recommended, another way to override classes. As explained earlier, Magento looks in the app/code/local folder first. If we simply put a class into a folder like app/code/local/Mage/Catalog/Model/Product.php magento will use this file everytime, we want to autoload our `catalog/product`. We do not need to specify this override in any way, it just works. But its extremy difficult to debug core modules if someone just overrides the original class this way, because, as said, there is no specification to be made to look for.
