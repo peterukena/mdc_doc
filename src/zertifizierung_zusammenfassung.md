@@ -109,3 +109,49 @@ To override any given class in Magento in our own module, we simply define a `<r
 **This is the Magento-Way**
 
 There is, though not recommended, another way to override classes. As explained earlier, Magento looks in the app/code/local folder first. If we simply put a class into a folder like app/code/local/Mage/Catalog/Model/Product.php magento will use this file everytime, we want to autoload our `catalog/product`. We do not need to specify this override in any way, it just works. But its extremy difficult to debug core modules if someone just overrides the original class this way, because, as said, there is no specification to be made to look for.
+
+### Register an observer
+
+Observers in Magento are hooked to so called events. Events are fired every now and then in Magento to signalize that certain things have happen. With observers, we can hook onto that place and execute our own code to make more stuff happen at that time.
+To do that, we need to specify an `<events>` node in our config.xml within the `<global>` node, name the event that we want to listen to, specify that we want to observe this event with an `<observers>` node, name our observer and specify the class and method that contains the code we want to execute, when the event occurs.
+This can look like this:
+
+	<events>
+        <controller_action_predispatch>
+            <observers>
+                <cert_exercise1_observer>
+                    <class>Cert_Exercise1_Model_Observer</class>
+                    <method>homeRedirect</method>
+                </cert_exercise1_observer>
+            </observers>
+        </controller_action_predispatch>
+    </events>
+
+
+This one will execute the `homeRedirect()` method from our observer located at app/code/community/Cert/Exercise1/Model/Observer.php.
+
+### Identify the function and proper use of automatically available events, including *_load_after, etc.
+
+Thoug events are specified, there are a lot of auto generated events in Magento. Especially the _predispatch and _postdispatch events that are fired from every controller within Magento.
+The above mentioned *_load_after and *_load_before events are fired, if Magento loads any Model. With observers registered, for example on `<catalog_product_load_before>` we can modify the product model before its completely loaded. We could add more attributes to load, we even can exchange the whole model to a different model in that case.
+
+### Set up a cron job
+
+Magento is able to uses the cron program on the machine it is installed to to automate certain tasks, like log cleaning, sitemap generation or sending mass newsletters.
+A cronjob setup in Magento is pretty simple: It is, like always, just another node in our config.xml. This one can look similar to this one (which is from the sitemap module):
+
+     <crontab>
+        <jobs>
+            <sitemap_generate>
+                <run>
+                    <model>sitemap/observer::scheduledGenerateSitemaps</model>
+                </run>
+            </sitemap_generate>
+        </jobs>
+    </crontab>
+
+This one executes the `scheduledGenerateSitemaps()` method of the `Sitemap/Observer.php` everytime we specified in the Magento backend. We could also add a `<schedule>` node which contains a `<cron_expr>` node which contains a standard cron expression. This will work as the standard systems crontab.
+
+
+## Internationalization
+---
