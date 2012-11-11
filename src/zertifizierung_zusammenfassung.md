@@ -175,3 +175,75 @@ We can use the themes translate.csv to manually override any modules translation
 ### Describe the advantages and disadvantages of using subdomains and subdirectories in internationalization
 
 I do not remember. Please help!
+
+
+## Application initialization
+---
+
+### Describe the steps for application initialization
+
+To start Magento up, first the whole configuration is loaded, as described earlier in this document. After having a functional configuration, Magento instantiates the `Mage` class and then runs the `run()` or the `app()` methods. In both cases Magento start to evaluate the request, which is passed on to the `index.php` file in our Magento root directory.
+The requestpath is seperated and passed into the front controller `Mage_Core_Controller_Varien_Action` which gathers all data requestet, builds the layout XML structure and renders it to HTML.
+
+### Describe the role of the system entry point, index.php
+
+The first thing a request will encounter is the `index.php` file in our Magento root directory. In here, basic checks are run, on which Magento can decide to run, or not to run.
+Things that get checked here:
+
+- PHP version >= 5.2.0
+- Error report level
+- Compiling enabled?
+- Maintenance flag set?
+- MAGE_DEVELOPER_MODE
+- Run type / Run code
+
+In the last line `Mage::run($mageRunCode, $mageRunType);` is executed and Magento starts up.
+Basically, the `index.php` file is the root and backbone of a Magento installation. Without it, Magento won´t run at all.
+
+### Describe the role of the front controller
+
+The `Mage_Core_Controller_Varien_Action` is the first point of evaluating a request. In here, we dig deep into Magentos classes to fulfill our request. We dispatch events, to let everyone know, that controllers have been executed, or layout has been generated.
+
+
+### Identify uses for events fired in the front controller
+
+The most important events fired in the front controller are the post- and predispatch events. That basically are events, fired before or after the event is fired.
+
+Sounds confusing, but it is very useful. As default we get three events for each function.
+
+- `controller_action_predispatch` - Which is fired everytime any controller will be loaded.
+- `controller_action_predispatch_'.$this->getRequest()->getRouteName()` - Which is fired for specific frontend routes - for example everytime before a customer invokes an action this event will be transformed to `controller_action_predispatch_customer_account`
+- `controller_action_predispatch_'.$this->getFullActionName()` - Which is fired everytime if a specific frontend action is executed. To stick to my example from above, we could get a `controller_action_predispatch_customer_account_login` event everytime before a customer logs in.
+
+---
+
+- `controller_action_postdispatch`
+- `controller_action_postdispatch_'.$this->getRequest()->getRouteName()`
+- `controller_action_postdispatch_'.$this->getFullActionName()`
+
+The last three events are exactly the same as the first ones, but those are fired just AFTER the respective things have happend.
+
+### Describe URL structure/processing in Magento
+
+Every URL in Magento is translated to a module/controller/action pattern. Customer/account/login would refer to the `loginAction()` method within the `AccountController.php` file in the customer module of Magento.
+
+### Describe the URL rewrite process
+
+Within our `config.xml` file, we are able to rewrite certain URLs to any other controller that exists in our shop. Because controllers in Magento are not rewriteable, you simple redirect the URL which launches a specific controller to another URL, which then launches any controller desired.
+Such magic would look like the following:
+
+	<global>
+	        <rewrite>
+	            <googlecheckout>
+	                <core>
+	                <from>/^.*?googlecheckout\/api/</from>
+	                <to>googlecheckout/api</to>
+	            </googlecheckout>
+	        </rewrite>
+	</global>
+
+This example taken from the GoogleCheckout module of Magento should describe the rewriting pretty well. We have a `<rewrite>` node and instead of substituting a class, we substitute an URL. The important part are the `<from>` and `<to>` nodes, which are the actual URL-Rewriting.
+
+### Describe request routing/request flow in Magento
+
+
