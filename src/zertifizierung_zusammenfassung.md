@@ -23,7 +23,7 @@ Magento codepools stand for three different locations, where magento looks for e
 	modified core-file in /local first, the original file from /core is not loaded anymore.
 	
 
-### Describe the typical Magento module structure
+### <a id="module_setup"></a>Describe the typical Magento module structure
 
 There are a lot of modules out there right now, and all certainly will look similar to this:
 First, there is the *module activation file*, which is located in app/etc/modules and is a simple XML-File, that contains the Module name, its namespace and code-pool and as well the "is it active"-Flag as also dependencies 
@@ -87,7 +87,7 @@ We also could try to modify the improper module in a way, that we can see the ti
 ## Magento configuration
 ---
 
-### Explain how Magento loads and manipulates configuration information
+### <a id="load_config"></a>Explain how Magento loads and manipulates configuration information
 
 If magento boots up the first time, it checks the app/etc/config.xml for initial information on version, database connection, installed-flag and localization. After that, it writes the app/etc/local.xml for database account and adminhtml path in frontend. 
 After that it will go to app/etc/modules and read all files there, which end to .xml. Done that, magento will go to all module folders, which are specified in app/etc/modules` .xml-files and load the respective config.xml files.
@@ -225,7 +225,7 @@ Sounds confusing, but it is very useful. As default we get three events for each
 
 The last three events are exactly the same as the first ones, but those are fired just AFTER the respective things have happend.
 
-### Describe URL structure/processing in Magento
+### <a id="url_structure"></a>Describe URL structure/processing in Magento
 
 Every URL in Magento is translated to a module/controller/action pattern. Customer/account/login would refer to the `loginAction()` method within the `AccountController.php` file in the customer module of Magento.
 
@@ -248,4 +248,71 @@ This example taken from the GoogleCheckout module of Magento should describe the
 
 ### Describe request routing/request flow in Magento
 
+Whenever a request hits the webserver, the host is cut away and the rest is used to start the corresponding module/controller/action flow. This is already described above in [Describe URL structure/processing in Magento](#url_structure).
 
+### Describe how Magento determines which controller to use and how to customize route-to-controller resolution
+
+Whitin the default router model of Magento, the request URL is taken apart to determine Module, Controller and Action to use. This happens in `Mage_Core_Controller_Varien_Action` and its `_forward()` method. Here the action name is set and the request is forwared to the `dispatch()` method, which tries to call the actionMethod in the request. If this is not possible, the noroute-Action is called, and if this is not possible either, an Exception is thrown.
+
+### Describe the steps needed to create and register a new module
+
+Registering a new module in Magento is pretty easy. We effectively just need two files.
+
+- a Module activation file in app/etc/modules/Namespace_Modulname.xml
+- a Module configuration file in app/code/codePool/Namepsace/Modulname/etc/config.xml
+
+This is also described [here](#module_setup)
+
+
+### Describe the effect of module dependencies
+
+Sometimes we need to have other modules installed to run our own module. To ensure, this is the case, we can use a `<depends>` node in our module activation file.
+
+This can look like this:
+
+	<config>
+   		 <modules>
+   	    	 <Mage_Api>
+   	        	 <active>true</active>
+   	         	<codePool>core</codePool>
+   	         	<depends>
+   	            	 <Mage_Core />
+   	        	</depends>
+			</Mage_Api>
+		</modules>
+	</config>
+
+If the config loading process finds one of these `<depends>`nodes, it will only register this module, if there is an `<active>true</active>` node in the node, that is named in the dependency.
+
+In this case, the API module will only load if the `Mage_Core` module is installed and enabled.
+
+### Describe different types of configuration files and their load priorities
+
+This is already described [here](#load_config).
+
+### Identify the steps in the request flow in which:
+… … … … … … … … … … 
+
+#### Design Data is populated
+
+Withing the execution of a controller, Magento starts to gather neccessary information and data via models and ressource models, passes it through to Blocks and brings it into the template, where the information is rendered into HTML.
+
+#### Layout configuration files are parsed
+
+While rendering the HTML-Output of a block, the layout is loaded. Each structural block in the layout will get its name and alias, so it can be referred to, after gathering all data. These files are parsed before actual content will be rendered.
+
+#### Layout is compiled
+
+
+#### Output is rendered
+
+Output is only rendered in so called output blocks. These blocks have an attribute "_toHtml" which means, they are directly involved in the response which is sent to the browser. These blocks have the responsibility to render their child blocks and therefore to render the whole page. This is normally done in the last part of the generation of the response.
+
+
+### Describe how and when Magento renders content to the browser
+
+With the `toHtml()` or the `$this->getChildHtml()` in Blocks and Templates, Magento starts to render all in layout defined .phtml files, that are in the child chain of the root block. The root block is defined in the `page.xml` file in each Magento´s base/default theme.
+
+### Describe how and when Magento flushes output variables using the front controller
+
+Help please!
