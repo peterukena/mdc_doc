@@ -207,7 +207,7 @@ Basically, the `index.php` file is the root and backbone of a Magento installati
 The `Mage_Core_Controller_Varien_Action` is the first point of evaluating a request. In here, we dig deep into Magentos classes to fulfill our request. We dispatch events, to let everyone know, that controllers have been executed, or layout has been generated.
 
 
-### Identify uses for events fired in the front controller
+### <a id="front_controller_events"></a>Identify uses for events fired in the front controller
 
 The most important events fired in the front controller are the post- and predispatch events. That basically are events, fired before or after the event is fired.
 
@@ -309,10 +309,178 @@ While rendering the HTML-Output of a block, the layout is loaded. Each structura
 Output is only rendered in so called output blocks. These blocks have an attribute "_toHtml" which means, they are directly involved in the response which is sent to the browser. These blocks have the responsibility to render their child blocks and therefore to render the whole page. This is normally done in the last part of the generation of the response.
 
 
-### Describe how and when Magento renders content to the browser
+### <a id="rendering"></a>Describe how and when Magento renders content to the browser
 
 With the `toHtml()` or the `$this->getChildHtml()` in Blocks and Templates, Magento starts to render all in layout defined .phtml files, that are in the child chain of the root block. The root block is defined in the `page.xml` file in each Magento´s base/default theme.
 
 ### Describe how and when Magento flushes output variables using the front controller
 
 Help please!
+
+## Rendering
+---
+
+### Define and describe the use of themes in Magento
+
+Themes in Magento represent the specific design of one specific shop/store view. Each storeview in Magento can only use one theme at a time.
+
+### Define and describe the use of design packages
+
+Design packages contain one or more themes, which is just for structuring your theme world in your shop.
+As an Example of the last two topics, this should do fine:
+
+We have a Magento store that sells Jackets, Shoes and computer hardware at the same time. While we do not want to have them look all the time, we create two design packages:
+
+- Clothing
+- Technical
+
+This way, we have separated our shops designwise into two different areas. Now we create themes and assign them eventually as follows:
+
+- Clothing
+	- Jacket shop in summer design
+	- Jacket shop in winter design
+	- Shoe shop in summer design
+	- Shoe shop in winter design
+- Technical
+	- Computer hardware
+	- Home entertainment
+	
+As you can see, I have created more designs for specific reasons. The theme/package structure of Magento lets us easily pack themes together for the same purpose. As well as its perfectly easy to to small changes in a theme.
+We simply create a new theme in our package and make only the neccessary changes. As long as we have another design (that is thematically inherited by our new one), Magento automatically falls back into this theme, if there are templates missing.
+
+### Describe the process of defining template file paths
+
+Template files are stored in our `app/design/` location and are divided in a structure like this:
+
+- frontend/base/default/template - layout - locale
+- frontend/default/default …
+- adminhtml …
+
+This way we exactly know where to look for our files. The `base/default` path represents the ultimate fallback destination and should **never** be touched. We can create more designs in the base-package, but that is also not recommended. It is better to put them into the default-package, since the `default/default` design is the second ultimate fallback and the default fallback in Magento.
+
+### Describe the programmatic structure of blocks
+
+Blocks in Magento gather the data provided by the models and put them in a way, we can use in our templates. So, for example, if we want to display customer information in a template, we create a block, which loads the `customer/customer` model, gathers the data needed and sets it as template variables. This way we can use these variables in our template and display them.
+The block also is able to make changes to its layout or assigned template-files. This works in the same manner, as we can do this via layout XML.
+
+### Describe the relationship between templates and blocks
+
+Since a template is somewhat inherited by a block, they work very close together. In fact, the `Mage_Core_Block_Template` includes .phtml files directly, which means the templates HTLM and PHP directions appear within the blocks instance. That way we can use variables passed into the block via every child of it.
+
+### Describe the stages in the lifecycle of a block
+
+First a block gets instanciated by a controller or the layouts `_toHtml()` method. Second he gets his data through various models, which are instanciated by controllers and gathers its data. Then he renders his template and puts it into the HTTP-Response. After that, his life is over and its instance is never beeing used anymore in this request.
+
+### Describe events fired in blocks
+
+Basically we have 4 different, automatically fired events which work mostly the same as the [front controller events](#front_controller_events). These events are:
+
+- `core_block_abstract_prepare_layout_before`
+- `core_block_abstract_prepare_layout_after`
+- `core_block_abstract_to_html_before`
+- `core_block_abstract_to_html_after`
+
+After reading about the front controller events, no more explanation should be neccessary.
+
+### Identify different types of blocks
+
+There are `Mage_Core_Block_Template` blocks, which are used to render template files into HTML. Then we have `Mage_Core_Block_Text` which only displays test. Besides that, we have more specialized blocks. For example the `Mage_Catalog_Block_Product_List` which is capable of displaying a list including several `Mage_Catalog_Block_Product` blocks.
+
+### Describe block instantiation
+
+We can use `createBlock('type/of_block)` of the `Mage_Core_Model_Layout` to get ourselves an instance of a block. This method is no factory method like `Mage::getModel()` or `Mage::helper()`. This will parse the name and return an instance of the desired block.
+
+### Explain different mechanisms for disabling block output
+
+We could remve the template of the block, by using `$block->setTemplate('');`, so the block has nothing to display. A rather hard way (and not recommended also) is to overide the page.xml file in `base/default/layout` and disable the root output by removing the `output="toHtml"` attribute of it.
+
+### Describe how a typical block is rendered
+
+This is described [here](#rendering)
+
+### <a id="page_code"></a>Describe the elements of Magento's layout XML schema, including the major layout directives
+
+A basic layout.xml could look like this:
+
+	<?xml version="1.0" ?>
+	<layout>
+
+    	<catalog_product_view>
+        	<reference name="content">
+            	<block type="exercise3/comment" template="exercise3.phtml" />
+	        </reference>
+    	</catalog_product_view>
+
+	    <catalog_category_default>
+    	    <reference name="content">
+        	    <block type="exercise3/category_comment" after="-" template="exercise3_cat.phtml" />
+	        </reference>
+    	</catalog_category_default>
+    
+	</layout>
+
+Within this file, we declare that this part of the XML is `<layout>` and that we have to handles, on which we want layout updates to happen.
+Everytime the `<catalog_product_view>` handle is rendered, we access the content block with a `<reference name="content">` node and tell Magento to insert another `<block type="exercise3/comment">` into the said content block.
+
+Instead of using specific handles like above, we simply could use the `<default>` handle, to have our layout updated on every page in Magento.
+In addition to this, we have more structues, like the following:
+
+Removal of blocks:
+
+	<reference name="blockname">
+   		<remove name="block_to_be_removed_name"/>
+	</reference>
+	
+
+Insertion of js/css
+
+    <default>
+        <reference name="head">
+            <action method="addCss"><stylesheet>css/css.file</stylesheet></action>
+        </reference>
+    </default>
+
+and
+
+    <catalog_product_view>
+        <reference name="head">
+            <action method="addItem">
+                <type>skin_js</type>
+                <name>js/js.file</name>
+            </action>
+        </reference>
+    </catalog_product_view>
+    
+With layout XML we nearly can do anything. :)
+
+### Register layout XML files
+
+To use our layout XML files, we have to tell Magento about these layout updates via the `config.xml`. We create a `<frontend>` that contains a `<layout>`, the obvious `<updates>` node, our own layout update handle `<Namespace_Modulname>` and a `<file>` node, which contains in plain text the path to our layout XML file relative the the `base/default` path.
+
+To put it in code:
+
+    <frontend>
+        <layout>
+            <updates>
+                <Namespace_Modulname>
+                    <file>layoutxml.file</file>
+                </Namespace_Modulname>
+            </updates>
+        </layout>
+    </frontend>
+    
+### Create and add code to pages
+
+See [here](#page_code) - there we add JS and CSS code to our page.
+
+### Explain how variables can be passed to block instances via layout XML
+
+For this, we can use the `<action method="set<variablename>">values_here</action>` tags within a `<reference>` node.
+
+### Describe various ways to add and customize JavaScript to specific request scopes
+
+Also described [here](#page_codes) - but bare in mind to use layouthandles to specify on which page you want your code to be.
+
+### Create frontend widgets and describe widget architecture
+
+todo.
