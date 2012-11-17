@@ -483,4 +483,78 @@ Also described [here](#page_codes) - but bare in mind to use layouthandles to sp
 
 ### Create frontend widgets and describe widget architecture
 
-todo.
+To create a widget, we need three things at least:
+
+- a widget.xml within the /etc folder of our module
+- a `Data.php` Helper in our Module
+- a Block which extends `Mage_Core_Block_Template` and implements `Mage_Widget_Block_Interface`
+
+The helper can be empty, but we need the appropiate class in our module to make the widget work. Within the block, we can gather data or prepare it to show within our widget.
+The important part of the widget is the `widget.xml`, which contains the structure of our widget. We declare type, name, title and parameters of a widget like this:
+
+	<?xml version="1.0"?>
+	<widgets>
+    	<exercise2 type="exercise2/widget_ercercise2">
+       	 	<name>Exercise2 Widget</name>
+        	<description>Widget from Certification Stuff</description>
+        	<parameters>
+            	<title translate="label">
+                	<visible>1</visible>
+                	<label>Exercise2</label>
+                	<type>image</type>
+            	</title>
+        	</parameters>
+    	</exercise2>
+	</widgets>
+	
+Most important here, besides the self explaining things, is the `<parameters>` node, in which we declare the paramters our widget expects. (wow.)
+Important here is the `<visible>` node and the `<type>` node, which define if the parameter field is visible when selected and what type it is. There are variants like text, textfield, image or file.
+
+Widgets are basically normal template blocks, which can be used in the WYSIWYG-Editor in CMS-Blocks and sites. They are some sort of interactive blocks, where the user is able to define the content manually and not programmatically like in all other blocks Magento has to offer.
+
+## ORM and Database
+---
+
+### Describe the basic concepts of models, resource models, and collections, and the relationship they have to one another
+
+Well, lets start with the models. Models in Magento represent the data organisation. A model holds and gathers all data from data sources, which are needed. There are models for customers, orders and adresses, for example. A model provides the information it gathers to other models and instances, which rely on its data and which need to further evaluate the data. These other models and instances refer to the MVC (Model-View-Controller) concept Magento is based on. In this, the models represent the pure data side.
+But Magento went further than just MVC - Magento has resource models and collections as well.
+A resource Model is the abstract version of a model. Since a model just gathers and combines data, where does it get this data from? Thats where the resource models kick in. They represent the stage/adapter to different persistens storage mediums. In terms of abstraction, this is totally reasonable, because we can use our models and dont care about how the data is actually stored. 
+
+The resource model takes care of this. 
+
+So if our storage system changes, we just need to alter the resource model and use the rest of our code just as usual.
+The last part of this topic are the collections. These are just array-like iterable collections (\*cough*) of models. Since models cannot be formed as an array, a collection does that. With `Mage::getModel('catalog/product')->getCollection()->load()` we would get an iterable, sortable, filterable set of all products in our shop as models.
+
+### Configure a database connection
+
+Though Magento keeps the initial database connection within its `local.xml` file in a `<db>` node, we can define our own database connection inside our `config.xml` file. The content of a `<db>` node looks like this:
+
+	<db>
+    	<table_prefix><![CDATA[]]></table_prefix>
+   	</db>
+       <default_setup>
+           <connection>
+                <host><![CDATA[127.0.0.1]]></host>
+                <username><![CDATA[abc123]]></username>
+                <password><![CDATA[abc123]]></password>
+                <dbname><![CDATA[abc123]]></dbname>
+                <active>1</active>
+            </connection>
+        </default_setup>
+        
+This is pretty self explaining, all neccessary information to establish a connection to a MySQL database is given in this snippet.
+
+Besides the pure database access information, we can define read and write connectors, which magento can use (if we have more than one read and write to different databases) to split up read and write sessions to different databases. We could provide a second database to store all order information in - or build up a master/slave database system.
+
+For this, Magento utilizes `<default_read>` and `<default_write>` as well as our own `<read>` and `<write>` nodes. In each of these nodes, we specify a `<connection>` with a defined database setup that should be used for this read/write access.
+
+### Describe how Magento works with database tables
+
+Help please! :)
+
+### Describe the load-and-save process for a regular entity
+
+With the `load()` and `save()` methods on models as well as on resource models, Magento tries to write the data into its storage. 
+If we call one of the named methods on our model, Magento checks, wether the dataset of the model still exist and then executes the `_beforeSave()` method, which gives us the chance to perform some last minute changes on the models data.
+When this is done, Magento tries to save the corresponding resource model	
