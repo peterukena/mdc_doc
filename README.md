@@ -10,6 +10,7 @@ I need some corrections and editings on the internationalization part. I just no
 
 My knowledge also lacks about the "Describe how and when Magento flushes output variables using the front controller" - any help is totally appreaciated. :)
 
+I need more help again on the "Describe how Magento works with database tables" part. I just have no clue at the moment. :/
 
 
 
